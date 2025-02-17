@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Voice Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+        }
+        header, footer {
+            background: #111;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            color: black;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        select, button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+        }
+        .sidebar {
+            width: 20%;
+            background: #222;
+            padding: 20px;
+            text-align: center;
+        }
+        .wrapper {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Text to Voice Maker</h1>
+    </header>
+    
+    <div class="wrapper">
+        <aside class="sidebar">विज्ञापन स्पेस</aside>
+        
+        <div class="container">
+            <textarea id="textInput" placeholder="अपना टेक्स्ट यहाँ टाइप करें..." maxlength="10000"></textarea>
+            <br>
+            <select id="voiceSelect"></select>
+            <br>
+            <button onclick="convertTextToSpeech()">आवाज़ में बदलें</button>
+            <button onclick="downloadAudio()">डाउनलोड करें</button>
+            <audio id="audioPlayer" controls></audio>
+            <a id="downloadLink" style="display:none;" download="audio.mp3">डाउनलोड ऑडियो</a>
+        </div>
+        
+        <aside class="sidebar">विज्ञापन स्पेस</aside>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Text to Voice Maker | सभी अधिकार सुरक्षित</p>
+    </footer>
+    
+    <script>
+        const voiceOptions = [
+            { name: "अमित", gender: "male" }, { name: "रोहन", gender: "male" }, { name: "समीर", gender: "male" },
+            { name: "अर्जुन", gender: "male" }, { name: "कबीर", gender: "male" }, { name: "देव", gender: "male" },
+            { name: "विशाल", gender: "male" }, { name: "स्नेहा", gender: "female" }, { name: "प्रिया", gender: "female" },
+            { name: "रिया", gender: "female" }, { name: "अनुष्का", gender: "female" }, { name: "काव्या", gender: "female" },
+            { name: "नैना", gender: "female" }, { name: "सान्या", gender: "female" }
+        ];
+        
+        const voiceSelect = document.getElementById("voiceSelect");
+        voiceOptions.forEach(voice => {
+            let option = document.createElement("option");
+            option.value = voice.name;
+            option.textContent = `${voice.name} (${voice.gender})`;
+            voiceSelect.appendChild(option);
+        });
+
+        async function convertTextToSpeech() {
+            let text = document.getElementById("textInput").value;
+            let selectedVoice = document.getElementById("voiceSelect").value;
+            if (text.trim() === "") {
+                alert("कृपया टेक्स्ट डालें!");
+                return;
+            }
+            
+            const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize?key=YOUR_GOOGLE_CLOUD_API_KEY", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input: { text: text },
+                    voice: { languageCode: "hi-IN", name: selectedVoice },
+                    audioConfig: { audioEncoding: "MP3" }
+                })
+            });
+            
+            const data = await response.json();
+            const audioData = `data:audio/mp3;base64,${data.audioContent}`;
+            document.getElementById("audioPlayer").src = audioData;
+            document.getElementById("downloadLink").href = audioData;
+            document.getElementById("downloadLink").style.display = "block";
+        }
+
+        function downloadAudio() {
+            let downloadLink = document.getElementById("downloadLink");
+            if (!downloadLink.href.includes("data:audio/mp3;base64,")) {
+                alert("कृपया पहले टेक्स्ट को आवाज में बदलें!");
+                return;
+            }
+            downloadLink.click();
+        }
+    </script>
+</body>
+</html>
